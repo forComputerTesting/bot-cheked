@@ -1,6 +1,6 @@
 const TelegramBot = require('node-telegram-bot-api');
 const TOKEN_v2 = "8016611576:AAGpzknvJ6p2bN6_0RDV9DIkR9asWX7zl2Y";
-const GROUP_ID = "-1002293469110";
+const GROUP_ID = "-1002467053411";
 const bot = new TelegramBot(TOKEN_v2, { polling: true });
 
 const USER_ACTIVITY = new Map();
@@ -12,11 +12,14 @@ async function checkUserActivity() {
         for (const [userId, lastMessageTime] of USER_ACTIVITY.entries()) {
             if (currentTime - lastMessageTime > 5000) { // 5 секунд
                 try {
-                    await bot.banChatMember(GROUP_ID, userId);
+                    const banDuration = 7 * 24 * 60 * 60; // 7 дней в секундах
+                    const untilDate = Math.floor(Date.now() / 1000) + banDuration;
+
+                    await bot.banChatMember(GROUP_ID, userId, { until_date: untilDate });
                     USER_ACTIVITY.delete(userId);
-                    console.log(`User ${userId} kicked for inactivity`);
+                    console.log(`User ${userId} banned for 7 days due to inactivity`);
                 } catch (error) {
-                    console.error(`Error kicking user ${userId}:`, error);
+                    console.error(`Error banning user ${userId}:`, error);
                 }
             }
         }
