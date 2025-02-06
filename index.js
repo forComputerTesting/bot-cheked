@@ -12,8 +12,8 @@ async function checkUserActivity() {
         for (const [userId, lastMessageTime] of USER_ACTIVITY.entries()) {
             const inactiveTime = currentTime - lastMessageTime;
 
-            // 7 дней в миллисекундах (7 * 24 * 60 * 60 * 1000)
-            if (inactiveTime > 7 * 24 * 60 * 60 * 1000) { 
+            // 30 дней в миллисекундах (30 * 24 * 60 * 60 * 1000)
+            if (inactiveTime > 30 * 24 * 60 * 60 * 1000) { 
                 try {
                     await bot.banChatMember(GROUP_ID, userId, { until_date: Math.floor(Date.now() / 1000) + 60 }); // Баним на 1 минуту
                     setTimeout(async () => {
