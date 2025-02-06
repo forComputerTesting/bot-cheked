@@ -10,20 +10,28 @@ async function checkUserActivity() {
     setInterval(async () => {
         const currentTime = Date.now();
         for (const [userId, lastMessageTime] of USER_ACTIVITY.entries()) {
-            if (currentTime - lastMessageTime > 5000) { // 5 секунд
-                try {
-                    const banDuration = 7 * 24 * 60 * 60; // 7 дней в секундах
-                    const untilDate = Math.floor(Date.now() / 1000) + banDuration;
+            const inactiveTime = currentTime - lastMessageTime;
 
-                    await bot.banChatMember(GROUP_ID, userId, { until_date: untilDate });
-                    USER_ACTIVITY.delete(userId);
-                    console.log(`User ${userId} banned for 7 days due to inactivity`);
+            // 7 дней в миллисекундах (7 * 24 * 60 * 60 * 1000)
+            if (inactiveTime > 7 * 24 * 60 * 60 * 1000) { 
+                try {
+                    await bot.banChatMember(GROUP_ID, userId, { until_date: Math.floor(Date.now() / 1000) + 60 }); // Баним на 1 минуту
+                    setTimeout(async () => {
+                        try {
+                            await bot.unbanChatMember(GROUP_ID, userId, { only_if_banned: true }); // Разбан
+                            await bot.kickChatMember(GROUP_ID, userId); // Удаляем из группы
+                            USER_ACTIVITY.delete(userId);
+                            console.log(`User ${userId} removed for inactivity`);
+                        } catch (error) {
+                            console.error(`Error removing user ${userId}:`, error);
+                        }
+                    }, 60 * 1000); // Через 1 минуту после бана удаляем
                 } catch (error) {
                     console.error(`Error banning user ${userId}:`, error);
                 }
             }
         }
-    }, 1000); // Проверка каждую секунду
+    }, 60 * 1000); // Проверка каждую минуту
 }
 
 // Обработчик команды /start
