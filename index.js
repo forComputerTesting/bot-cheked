@@ -48,5 +48,28 @@ bot.on('message', (msg) => {
     }
 });
 
+// Команда /active_users
+bot.onText(/\/active_users/, async (msg) => {
+    const chatId = msg.chat.id;
+
+    if (USER_ACTIVITY.size === 0) {
+        bot.sendMessage(chatId, "Hozircha faollik kuzatilmadi.");
+        return;
+    }
+
+    let activeUsersList = "Faol foydalanuvchilar:\n";
+    for (const userId of USER_ACTIVITY.keys()) {
+        try {
+            const user = await bot.getChatMember(chatId, userId);
+            activeUsersList += `👤 ${user.user.first_name} (@${user.user.username || "yo'q"})\n`;
+        } catch (error) {
+            console.error(`Error fetching user ${userId}:`, error);
+            activeUsersList += `👤 UserID: ${userId}\n`;
+        }
+    }
+
+    bot.sendMessage(chatId, activeUsersList);
+});
+
 // Запускаем проверку активности
 checkUserActivity();
